@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0e0e0f">
+<title>PPL Tracker</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230e0e0f'/%3E%3Ctext y='68' x='50' text-anchor='middle' font-size='56' font-family='Arial Black,sans-serif' fill='%23e8733a'%3E💪%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0e0e0f; --bg2:#161618; --bg3:#1e1e21; --bg4:#26262a;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.13);
+  --text:#f0ede8; --text2:#9d9a94; --text3:#5a5855;
+  --push:#e8733a; --push-bg:rgba(232,115,58,0.13); --push-bd:rgba(232,115,58,0.28);
+  --pull:#4aab8a; --pull-bg:rgba(74,171,138,0.13); --pull-bd:rgba(74,171,138,0.28);
+  --legs:#c97dd4; --legs-bg:rgba(201,125,212,0.13); --legs-bd:rgba(201,125,212,0.28);
+  --gold:#f0b429; --gold-bg:rgba(240,180,41,0.13); --gold-bd:rgba(240,180,41,0.28);
+  --green:#4aab8a; --green-bg:rgba(74,171,138,0.13);
+  --blue:#5b9cf6; --blue-bg:rgba(91,156,246,0.13); --blue-bd:rgba(91,156,246,0.28);
+  --red:#e85555; --red-bg:rgba(232,85,85,0.13);
+  --r:12px; --rl:16px;
+  --nav-h:60px;
+  --sit: env(safe-area-inset-top,0px);
+  --sib: env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+#app{display:flex;flex-direction:column;height:100dvh;height:100vh;overflow:hidden}
+
+/* TOP BAR */
+.topbar{flex-shrink:0;padding:0 16px;padding-top:var(--sit);height:calc(52px + var(--sit));display:flex;align-items:center;justify-content:space-between;background:rgba(14,14,15,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);z-index:10}
+.logo{font-family:'Bebas Neue';font-size:24px;letter-spacing:3px}.logo span{color:var(--push)}
+.topbar-date{font-size:12px;color:var(--text3)}
+
+/* SCROLL */
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+.scroll::-webkit-scrollbar{display:none}
+.page{display:none;padding:0 0 calc(var(--nav-h) + var(--sib) + 20px);animation:fadeIn .2s ease}
+.page.active{display:block}
+.page-inner{padding:14px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* TAB SWITCHER (antrenman / beslenme) */
+.tab-switcher{display:flex;gap:0;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;position:sticky;top:0;z-index:5}
+.tab-btn{flex:1;padding:13px 8px;border:none;background:transparent;font-family:'Syne';font-size:12px;font-weight:700;color:var(--text3);cursor:pointer;letter-spacing:.5px;text-transform:uppercase;border-bottom:2px solid transparent;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.tab-btn.active{color:var(--text);border-bottom-color:var(--gold)}
+.tab-content{display:none;padding:14px}
+.tab-content.active{display:block;animation:fadeIn .2s ease}
+
+/* BOTTOM NAV */
+.bnav{flex-shrink:0;background:rgba(14,14,15,.97);backdrop-filter:blur(16px);border-top:1px solid var(--border);display:flex;padding-bottom:var(--sib);z-index:10}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 0;border:none;background:transparent;color:var(--text3);cursor:pointer;font-family:'Syne';font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;min-height:var(--nav-h);transition:color .2s}
+.bnav-btn.active{color:var(--text)}
+.bnav-icon{font-size:19px;line-height:1;transition:transform .2s}
+.bnav-btn.active .bnav-icon{transform:scale(1.15)}
+.bnav-dot{width:4px;height:4px;border-radius:50%;background:transparent;margin-top:1px;transition:background .2s}
+.bnav-btn.active .bnav-dot{background:var(--gold)}
+
+/* STREAK CARD */
+.streak-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:16px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;position:relative;overflow:hidden}
+.streak-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--push),var(--pull),var(--legs))}
+.sc-l{display:flex;align-items:center;gap:12px}
+.sc-fire{width:44px;height:44px;border-radius:10px;background:var(--gold-bg);border:1px solid rgba(240,180,41,.25);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.sc-num{font-family:'Bebas Neue';font-size:40px;line-height:1;color:var(--gold)}
+.sc-lbl{font-size:9px;color:var(--text2);letter-spacing:1px;text-transform:uppercase}
+.sc-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.sc-r{text-align:right}
+.sc-tot{font-family:'Bebas Neue';font-size:26px;color:var(--text)}
+.sc-tot-l{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+
+/* DAY SELECTOR */
+.day-sel{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:12px}
+.ds-btn{border-radius:10px;border:1px solid var(--border);background:var(--bg2);padding:9px 2px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:transform .15s,background .15s}
+.ds-btn:active{transform:scale(.93)}
+.ds-day{font-size:8px;color:var(--text3);letter-spacing:1px;text-transform:uppercase}
+.ds-type{font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text3)}
+.ds-dot{width:5px;height:5px;border-radius:50%;background:transparent;margin-top:1px}
+.ds-btn.ap{background:var(--push-bg);border-color:var(--push-bd)}.ds-btn.ap .ds-type{color:var(--push)}
+.ds-btn.apu{background:var(--pull-bg);border-color:var(--pull-bd)}.ds-btn.apu .ds-type{color:var(--pull)}
+.ds-btn.al{background:var(--legs-bg);border-color:var(--legs-bd)}.ds-btn.al .ds-type{color:var(--legs)}
+.ds-btn.it .ds-day{color:var(--gold)}
+.ds-btn.dp .ds-dot{background:var(--push)}.ds-btn.dpu .ds-dot{background:var(--pull)}.ds-btn.dl .ds-dot{background:var(--legs)}
+
+/* WORKOUT */
+.wh{margin-bottom:12px}
+.wh-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px}
+.tbadge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px}
+.tbadge.push{background:var(--push-bg);border:1px solid var(--push-bd);color:var(--push)}
+.tbadge.pull{background:var(--pull-bg);border:1px solid var(--pull-bd);color:var(--pull)}
+.tbadge.legs{background:var(--legs-bg);border:1px solid var(--legs-bd);color:var(--legs)}
+.wh-title{font-family:'Bebas Neue';font-size:22px;letter-spacing:1px;line-height:1.1}
+.fin-btn{padding:12px 14px;border-radius:10px;border:none;flex-shrink:0;font-family:'Syne';font-size:12px;font-weight:700;cursor:pointer;transition:transform .15s,background .15s;letter-spacing:.3px;white-space:nowrap;align-self:flex-start;margin-top:4px}
+.fin-btn.push{background:var(--push);color:#fff}.fin-btn.pull{background:var(--pull);color:#fff}.fin-btn.legs{background:var(--legs);color:#fff}
+.fin-btn:active{transform:scale(.93)}
+.fin-btn.done{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.prog{margin-bottom:12px}
+.prog-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.prog-lbl{font-size:11px;color:var(--text2)}.prog-pct{font-family:'Bebas Neue';font-size:15px}
+.prog-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.push .prog-fill{background:linear-gradient(90deg,var(--push),#f09050)}.pull .prog-fill{background:linear-gradient(90deg,var(--pull),#6dc8a8)}.legs .prog-fill{background:linear-gradient(90deg,var(--legs),#d89ee0)}
+.ex-list{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.ex-item{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:13px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;min-height:62px;transition:background .15s,opacity .2s,transform .1s}
+.ex-item:active{transform:scale(.98);background:var(--bg3)}
+.ex-item.checked{opacity:.4}
+.ex-cb{width:26px;height:26px;border-radius:7px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;transition:all .2s}
+.ex-item.checked.push .ex-cb{background:var(--push);border-color:var(--push)}
+.ex-item.checked.pull .ex-cb{background:var(--pull);border-color:var(--pull)}
+.ex-item.checked.legs .ex-cb{background:var(--legs);border-color:var(--legs)}
+.ex-num{font-family:'Bebas Neue';font-size:15px;min-width:20px}
+.ex-item.push .ex-num{color:var(--push)}.ex-item.pull .ex-num{color:var(--pull)}.ex-item.legs .ex-num{color:var(--legs)}
+.ex-info{flex:1;min-width:0}
+.ex-name{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ex-item.checked .ex-name{text-decoration:line-through;color:var(--text3)}
+.ex-note{font-size:10px;color:var(--text3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ex-sets{text-align:right;flex-shrink:0}
+.sets-val{font-family:'Bebas Neue';font-size:17px;color:var(--text)}
+.sets-lbl{font-size:8px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase}
+.ex-pr{font-size:8px;font-weight:700;letter-spacing:.5px;color:var(--gold);background:var(--gold-bg);border:1px solid var(--gold-bd);padding:1px 5px;border-radius:4px;margin-left:4px}
+.tip{padding:11px 13px;border-radius:10px;font-size:11px;line-height:1.6;border-left:3px solid;margin-bottom:4px}
+.tip.push{background:var(--push-bg);border-color:var(--push);color:rgba(232,115,58,.85)}
+.tip.pull{background:var(--pull-bg);border-color:var(--pull);color:rgba(74,171,138,.85)}
+.tip.legs{background:var(--legs-bg);border-color:var(--legs);color:rgba(201,125,212,.85)}
+.rest-day{text-align:center;padding:60px 0}
+.rest-e{font-size:52px;margin-bottom:12px}
+.rest-t{font-family:'Bebas Neue';font-size:26px;letter-spacing:2px;color:var(--text2)}
+.rest-s{font-size:12px;color:var(--text3);margin-top:5px}
+
+/* SEC TITLE */
+.stitle{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:9px;margin-top:18px}
+.stitle:first-child{margin-top:0}
+
+/* ===== NUTRITION MODULE ===== */
+
+/* MACRO STRIP */
+.macro-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
+.macro-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px 8px;text-align:center;position:relative;overflow:hidden}
+.macro-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--mc,var(--border))}
+.macro-card.kcal{--mc:var(--gold)}.macro-card.protein{--mc:var(--push)}.macro-card.carb{--mc:var(--blue)}.macro-card.fat{--mc:var(--pull)}
+.macro-val{font-family:'Bebas Neue';font-size:20px;line-height:1;color:var(--text)}
+.macro-target{font-size:8px;color:var(--text3);margin-bottom:1px}
+.macro-lbl{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.macro-bar{height:2px;background:var(--bg4);border-radius:1px;margin-top:5px;overflow:hidden}
+.macro-bar-fill{height:100%;border-radius:1px;transition:width .4s ease}
+.kcal .macro-bar-fill{background:var(--gold)}.protein .macro-bar-fill{background:var(--push)}.carb .macro-bar-fill{background:var(--blue)}.fat .macro-bar-fill{background:var(--pull)}
+
+/* WATER TRACKER */
+.water-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;margin-bottom:12px}
+.water-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.water-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.water-count{font-family:'Bebas Neue';font-size:22px;color:var(--blue)}
+.water-glasses{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.water-glass{width:32px;height:32px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;transition:all .15s}
+.water-glass.filled{background:var(--blue-bg);border-color:var(--blue-bd)}
+.water-glass:active{transform:scale(.9)}
+.water-btns{display:flex;gap:6px}
+.water-btn{flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);font-family:'Syne';font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;transition:all .15s}
+.water-btn.add{background:var(--blue-bg);border-color:var(--blue-bd);color:var(--blue)}
+.water-btn:active{transform:scale(.96)}
+
+/* MEAL CARDS */
+.meal-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.meal-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:opacity .2s}
+.meal-card.done{opacity:.6}
+.meal-header{display:flex;align-items:center;padding:13px 14px;cursor:pointer;gap:12px;user-select:none}
+.meal-header:active{background:var(--bg3)}
+.meal-cb{width:28px;height:28px;border-radius:8px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;transition:all .2s}
+.meal-card.done .meal-cb{background:var(--green);border-color:var(--green)}
+.meal-icon{font-size:22px;flex-shrink:0}
+.meal-info{flex:1;min-width:0}
+.meal-name{font-size:14px;font-weight:700;color:var(--text)}
+.meal-card.done .meal-name{text-decoration:line-through;color:var(--text3)}
+.meal-macros{font-size:10px;color:var(--text3);margin-top:2px}
+.meal-time{font-size:10px;color:var(--text3);flex-shrink:0;text-align:right}
+.meal-body{padding:0 14px 13px;display:none;border-top:1px solid var(--border);padding-top:12px;margin-top:0}
+.meal-body.open{display:block;animation:fadeIn .15s ease}
+.meal-body-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.meal-ingredients{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.meal-ingredient{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text2);padding:5px 0;border-bottom:1px solid var(--border)}
+.meal-ingredient:last-child{border-bottom:none}
+.meal-ing-name{color:var(--text)}
+.meal-tip{background:var(--gold-bg);border:1px solid var(--gold-bd);border-radius:8px;padding:9px 11px;font-size:11px;color:rgba(240,180,41,.9);line-height:1.5}
+
+/* NUTRITION WEEKLY */
+.nutr-week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px}
+.nwc{border-radius:8px;border:1px solid var(--border);background:var(--bg2);padding:8px 3px;text-align:center}
+.nwc.nwc-done{border-color:rgba(74,171,138,.4);background:rgba(74,171,138,.08)}
+.nwc.nwc-today{border-color:var(--gold-bd);background:var(--gold-bg)}
+.nwc-d{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.nwc-n{font-family:'Bebas Neue';font-size:15px;color:var(--text)}
+.nwc-k{font-size:10px;margin-top:1px}
+
+/* WEEK GRID */
+.wk-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:16px}
+.wc{border-radius:8px;border:1px solid var(--border);background:var(--bg2);padding:8px 3px;text-align:center}
+.wc.wct{border-color:rgba(240,180,41,.4);background:rgba(240,180,41,.05)}
+.wc.wcp{border-color:var(--push-bd);background:var(--push-bg)}
+.wc.wcpu{border-color:var(--pull-bd);background:var(--pull-bg)}
+.wc.wcl{border-color:var(--legs-bd);background:var(--legs-bg)}
+.wc.wcr{opacity:.3}.wc.wcf{opacity:.25}
+.wc-d{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.wc-n{font-family:'Bebas Neue';font-size:16px;color:var(--text)}
+.wc-t{font-size:7px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-top:1px}
+.wc-k{font-size:11px;margin-top:1px}
+.wcp .wc-t{color:var(--push)}.wcpu .wc-t{color:var(--pull)}.wcl .wc-t{color:var(--legs)}
+
+/* CHAIN */
+.chain{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:16px}
+.cl{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text3);background:var(--bg2);font-weight:600}
+.cl.clp{background:var(--push-bg);border-color:var(--push-bd);color:var(--push)}
+.cl.clpu{background:var(--pull-bg);border-color:var(--pull-bd);color:var(--pull)}
+.cl.cll{background:var(--legs-bg);border-color:var(--legs-bd);color:var(--legs)}
+.cl.clb{background:rgba(255,50,50,.07);border-color:rgba(255,60,60,.15);color:rgba(255,80,80,.4)}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
+.sc2{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 10px}
+.sv{font-family:'Bebas Neue';font-size:24px;color:var(--text)}
+.sl{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
+.ss{font-size:10px;color:var(--text2);margin-top:3px}
+.type-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
+.tc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 10px;text-align:center}
+.tc.tcp{border-top:2px solid var(--push)}.tc.tcpu{border-top:2px solid var(--pull)}.tc.tcl{border-top:2px solid var(--legs)}
+.tv2{font-family:'Bebas Neue';font-size:22px}
+.tc.tcp .tv2{color:var(--push)}.tc.tcpu .tv2{color:var(--pull)}.tc.tcl .tv2{color:var(--legs)}
+.tl2{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
+
+/* CALENDAR */
+.mon-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.mon-lbl{font-family:'Bebas Neue';font-size:22px;letter-spacing:2px}
+.mnav{display:flex;gap:6px}
+.mnav-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.mnav-btn:active{background:var(--bg3)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:14px}
+.cdh{text-align:center;font-size:8px;color:var(--text3);text-transform:uppercase;padding:5px 0;letter-spacing:.5px}
+.cd{aspect-ratio:1;border-radius:6px;border:1px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:var(--text3)}
+.cd.cdi{color:var(--text2)}.cd.cdt{border-color:rgba(240,180,41,.5);color:var(--gold);background:rgba(240,180,41,.07)}
+.cd.cdp{background:var(--push-bg);border-color:var(--push-bd);color:var(--push)}
+.cd.cdpu{background:var(--pull-bg);border-color:var(--pull-bd);color:var(--pull)}
+.cd.cdl{background:var(--legs-bg);border-color:var(--legs-bd);color:var(--legs)}
+.cdot{width:4px;height:4px;border-radius:50%;margin-top:1px}
+.cdp .cdot{background:var(--push)}.cdpu .cdot{background:var(--pull)}.cdl .cdot{background:var(--legs)}
+
+/* SUMMARY CARD */
+.sum-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
+.sum-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--push),var(--pull),var(--legs))}
+.sum-title{font-family:'Bebas Neue';font-size:18px;letter-spacing:1px;margin-bottom:10px}
+.sum-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)}
+.sum-row:last-child{border-bottom:none}
+.sum-label{font-size:11px;color:var(--text2)}.sum-val{font-family:'Bebas Neue';font-size:15px;color:var(--text)}
+.sum-val.good{color:var(--pull)}.sum-val.warn{color:var(--gold)}
+
+/* PR */
+.pr-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.pr-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:13px 14px;position:relative;overflow:hidden}
+.pr-card::after{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.pr-card.push::after{background:var(--push)}.pr-card.pull::after{background:var(--pull)}.pr-card.legs::after{background:var(--legs)}
+.pr-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;padding-left:6px}
+.pr-row{display:flex;gap:8px;flex-wrap:wrap;padding-left:6px}
+.pr-chip{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:5px 10px;display:flex;flex-direction:column;align-items:center;min-width:70px}
+.pr-chip-val{font-family:'Bebas Neue';font-size:18px;color:var(--gold)}
+.pr-chip-lbl{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.pr-chip.best{border-color:var(--gold-bd);background:var(--gold-bg)}
+.pr-edit-btn{position:absolute;top:10px;right:12px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-family:'Syne';font-size:10px;font-weight:700;color:var(--text2);cursor:pointer}
+
+/* BODY WEIGHT */
+.bw-entry-form{display:flex;gap:8px;margin-bottom:12px}
+.bw-input{flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:11px 13px;font-family:'Syne';font-size:15px;color:var(--text);outline:none;transition:border-color .2s}
+.bw-input:focus{border-color:var(--gold-bd)}
+.bw-save-btn{background:var(--gold);color:#000;border:none;border-radius:10px;padding:11px 16px;font-family:'Syne';font-size:12px;font-weight:700;cursor:pointer}
+.bw-chart{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px;height:140px;position:relative}
+.bw-chart-svg{width:100%;height:100%}
+.bw-list{display:flex;flex-direction:column;gap:4px;max-height:180px;overflow-y:auto}
+.bw-entry{display:flex;justify-content:space-between;align-items:center;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 12px}
+.bw-date{font-size:11px;color:var(--text3)}.bw-val{font-family:'Bebas Neue';font-size:18px}
+.bw-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:2px 6px}
+
+/* EXERCISE EDITOR */
+.edit-type-tabs{display:flex;gap:6px;margin-bottom:10px}
+.edit-tab{flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);font-family:'Syne';font-size:11px;font-weight:700;cursor:pointer;text-align:center;color:var(--text3)}
+.edit-tab.active-push{background:var(--push-bg);border-color:var(--push-bd);color:var(--push)}
+.edit-tab.active-pull{background:var(--pull-bg);border-color:var(--pull-bd);color:var(--pull)}
+.edit-tab.active-legs{background:var(--legs-bg);border-color:var(--legs-bd);color:var(--legs)}
+.edit-ex-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:5px;display:flex;align-items:center;gap:8px}
+.edit-ex-name{flex:1;font-size:13px;color:var(--text);font-weight:500}
+.edit-ex-sets{font-family:'Bebas Neue';font-size:14px;color:var(--text2);min-width:36px;text-align:right}
+.edit-del-btn{background:var(--red-bg);border:none;border-radius:6px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--red);font-size:13px;flex-shrink:0}
+.add-ex-form{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-top:8px}
+.add-ex-form input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:9px 11px;font-family:'Syne';font-size:13px;color:var(--text);outline:none;margin-bottom:7px}
+.add-ex-form input:focus{border-color:var(--gold-bd)}
+.add-ex-form .add-row{display:flex;gap:7px}
+.add-ex-form .add-row input{margin-bottom:0}
+.add-ex-btn{background:var(--gold);color:#000;border:none;border-radius:8px;padding:9px 16px;font-family:'Syne';font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.reset-btn{background:var(--red-bg);border:1px solid rgba(232,85,85,.3);border-radius:8px;padding:9px 14px;font-family:'Syne';font-size:11px;font-weight:700;color:var(--red);cursor:pointer;width:100%;margin-top:8px}
+
+/* PR MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:300;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 16px;padding-bottom:calc(20px + var(--sib));width:100%;transform:translateY(20px);transition:transform .25s}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-title{font-family:'Bebas Neue';font-size:20px;letter-spacing:1px;margin-bottom:4px}
+.modal-sub{font-size:11px;color:var(--text3);margin-bottom:16px}
+.modal-fields{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.modal-field label{font-size:10px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:4px}
+.modal-field input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:11px 13px;font-family:'Syne';font-size:16px;color:var(--text);outline:none}
+.modal-field input:focus{border-color:var(--gold-bd)}
+.modal-btns{display:flex;gap:8px}
+.modal-save{flex:1;background:var(--gold);color:#000;border:none;border-radius:10px;padding:13px;font-family:'Syne';font-size:13px;font-weight:700;cursor:pointer}
+.modal-cancel{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:13px 18px;font-family:'Syne';font-size:13px;font-weight:600;color:var(--text2);cursor:pointer}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(var(--nav-h) + var(--sib) + 10px);left:50%;transform:translateX(-50%) translateY(16px);background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:10px 18px;border-radius:22px;font-size:12px;font-weight:500;opacity:0;transition:all .25s;pointer-events:none;z-index:200;white-space:nowrap;max-width:88vw;overflow:hidden;text-overflow:ellipsis}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type=number]{-moz-appearance:textfield}
+</style>
+</head>
+<body>
+<div id="app">
+
+<div class="topbar">
+  <div class="logo">PPL<span>.</span>TRACK</div>
+  <div class="topbar-date" id="tdate"></div>
+</div>
+
+<div class="scroll">
+
+  <!-- TODAY PAGE -->
+  <div class="page active" id="page-today">
+    <!-- TAB SWITCHER -->
+    <div class="tab-switcher">
+      <button class="tab-btn active" id="tab-antrenman" onclick="switchTab('antrenman')">🏋️ Antrenman</button>
+      <button class="tab-btn" id="tab-beslenme" onclick="switchTab('beslenme')">🥗 Beslenme</button>
+    </div>
+
+    <!-- ANTRENMAN TAB -->
+    <div class="tab-content active" id="tc-antrenman">
+      <div class="streak-card">
+        <div class="sc-l">
+          <div class="sc-fire">🔥</div>
+          <div>
+            <div class="sc-num" id="snum">0</div>
+            <div class="sc-lbl">Günlük Seri</div>
+            <div class="sc-sub" id="ssub">İlk antrenmanını tamamla!</div>
+          </div>
+        </div>
+        <div class="sc-r">
+          <div class="sc-tot" id="stot">0</div>
+          <div class="sc-tot-l">Toplam</div>
+        </div>
+      </div>
+      <div class="day-sel" id="dsel"></div>
+      <div id="warea"></div>
+    </div>
+
+    <!-- BESLENME TAB -->
+    <div class="tab-content" id="tc-beslenme">
+
+      <!-- MACRO STRIP -->
+      <div class="stitle" style="margin-top:0">Günlük Makrolar</div>
+      <div class="macro-strip">
+        <div class="macro-card kcal">
+          <div class="macro-target" id="m-kcal-t">0/2100</div>
+          <div class="macro-val" id="m-kcal">0</div>
+          <div class="macro-lbl">Kcal</div>
+          <div class="macro-bar"><div class="macro-bar-fill" id="mb-kcal" style="width:0%"></div></div>
+        </div>
+        <div class="macro-card protein">
+          <div class="macro-target" id="m-prot-t">0/160g</div>
+          <div class="macro-val" id="m-prot">0</div>
+          <div class="macro-lbl">Protein</div>
+          <div class="macro-bar"><div class="macro-bar-fill" id="mb-prot" style="width:0%"></div></div>
+        </div>
+        <div class="macro-card carb">
+          <div class="macro-target" id="m-carb-t">0/200g</div>
+          <div class="macro-val" id="m-carb">0</div>
+          <div class="macro-lbl">Karb</div>
+          <div class="macro-bar"><div class="macro-bar-fill" id="mb-carb" style="width:0%"></div></div>
+        </div>
+        <div class="macro-card fat">
+          <div class="macro-target" id="m-fat-t">0/65g</div>
+          <div class="macro-val" id="m-fat">0</div>
+          <div class="macro-lbl">Yağ</div>
+          <div class="macro-bar"><div class="macro-bar-fill" id="mb-fat" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <!-- WATER TRACKER -->
+      <div class="water-section">
+        <div class="water-header">
+          <div class="water-title">💧 Su Takibi</div>
+          <div class="water-count"><span id="water-count">0</span>/8 bardak</div>
+        </div>
+        <div class="water-glasses" id="water-glasses"></div>
+        <div class="water-btns">
+          <button class="water-btn add" onclick="addWater()">+ Bardak ekle</button>
+          <button class="water-btn" onclick="removeWater()">− Geri al</button>
+        </div>
+      </div>
+
+      <!-- MEALS -->
+      <div class="stitle">Öğünler</div>
+      <div class="meal-list" id="meal-list"></div>
+
+    </div>
+  </div>
+
+  <!-- WEEKLY PAGE -->
+  <div class="page" id="page-weekly">
+    <div class="page-inner">
+    <div class="streak-card" style="margin-bottom:14px">
+      <div class="sc-l">
+        <div class="sc-fire">⛓️</div>
+        <div>
+          <div class="sc-num" id="wstr">0</div>
+          <div class="sc-lbl">Günlük Seri</div>
+          <div class="sc-sub" id="wbest">En iyi: 0 gün</div>
+        </div>
+      </div>
+      <div class="sc-r">
+        <div class="sc-tot" id="wwc">0/5</div>
+        <div class="sc-tot-l">Bu Hafta</div>
+      </div>
+    </div>
+    <div class="stitle">Haftalık Özet</div>
+    <div class="sum-card" id="weekly-summary"></div>
+    <div class="stitle">Bu Hafta — Antrenman</div>
+    <div class="wk-grid" id="wkgrid"></div>
+    <div class="stitle">Bu Hafta — Beslenme</div>
+    <div class="nutr-week-grid" id="nutr-week-grid"></div>
+    <div class="stitle">Son 28 Gün — Zincir</div>
+    <div class="chain" id="chain"></div>
+    <div class="stitle">İstatistikler</div>
+    <div class="stats-row">
+      <div class="sc2"><div class="sv" id="swt">0</div><div class="sl">Toplam</div><div class="ss" id="swm">Bu ay: 0</div></div>
+      <div class="sc2"><div class="sv" id="swb">0</div><div class="sl">En İyi Seri</div><div class="ss">Kesintisiz</div></div>
+      <div class="sc2"><div class="sv" id="swr">0%</div><div class="sl">Bu Hafta</div><div class="ss">5 gün hedef</div></div>
+    </div>
+    <div class="stitle">Tür Dağılımı</div>
+    <div class="type-row">
+      <div class="tc tcp"><div class="tv2" id="tsp">0</div><div class="tl2">Push</div></div>
+      <div class="tc tcpu"><div class="tv2" id="tspu">0</div><div class="tl2">Pull</div></div>
+      <div class="tc tcl"><div class="tv2" id="tsl">0</div><div class="tl2">Legs</div></div>
+    </div>
+    </div>
+  </div>
+
+  <!-- MONTHLY PAGE -->
+  <div class="page" id="page-monthly">
+    <div class="page-inner">
+    <div class="mon-hdr">
+      <div class="mon-lbl" id="mlbl"></div>
+      <div class="mnav">
+        <button class="mnav-btn" onclick="prevMonth()">‹</button>
+        <button class="mnav-btn" onclick="nextMonth()">›</button>
+      </div>
+    </div>
+    <div class="cal-grid" id="calgrid"></div>
+    <div class="stitle">Bu Ay</div>
+    <div class="stats-row">
+      <div class="sc2"><div class="sv" id="mct">0</div><div class="sl">Antrenman</div><div class="ss" id="mgol"></div></div>
+      <div class="sc2"><div class="sv" id="mst">0</div><div class="sl">En Uzun Seri</div><div class="ss">Bu ay</div></div>
+      <div class="sc2"><div class="sv" id="mrt">0%</div><div class="sl">Oran</div><div class="ss" id="mdl"></div></div>
+    </div>
+    <div class="stitle">Aylık Dağılım</div>
+    <div class="type-row">
+      <div class="tc tcp"><div class="tv2" id="mtp">0</div><div class="tl2">Push</div></div>
+      <div class="tc tcpu"><div class="tv2" id="mtpu">0</div><div class="tl2">Pull</div></div>
+      <div class="tc tcl"><div class="tv2" id="mtl">0</div><div class="tl2">Legs</div></div>
+    </div>
+    </div>
+  </div>
+
+  <!-- PR PAGE -->
+  <div class="page" id="page-pr">
+    <div class="page-inner">
+    <div class="stitle" style="margin-top:0">Kişisel Rekorlar</div>
+    <div class="pr-list" id="pr-list"></div>
+    <div class="stitle">Vücut Ağırlığı</div>
+    <div class="bw-entry-form">
+      <input class="bw-input" type="number" id="bw-input" placeholder="Kg gir..." step="0.1">
+      <button class="bw-save-btn" onclick="saveBW()">Kaydet</button>
+    </div>
+    <div class="bw-chart"><svg class="bw-chart-svg" id="bw-svg"></svg></div>
+    <div class="bw-list" id="bw-list"></div>
+    </div>
+  </div>
+
+  <!-- EDIT PAGE -->
+  <div class="page" id="page-edit">
+    <div class="page-inner">
+    <div class="stitle" style="margin-top:0">Egzersiz Düzenle</div>
+    <div class="edit-type-tabs">
+      <button class="edit-tab active-push" onclick="setEditType('push',this)">Push</button>
+      <button class="edit-tab" onclick="setEditType('pull',this)">Pull</button>
+      <button class="edit-tab" onclick="setEditType('legs',this)">Legs</button>
+    </div>
+    <div id="edit-ex-list"></div>
+    <div class="add-ex-form">
+      <input type="text" id="add-name" placeholder="Egzersiz adı...">
+      <input type="text" id="add-note" placeholder="Açıklama (opsiyonel)">
+      <div class="add-row">
+        <input type="text" id="add-sets" placeholder="Set×Tek (örn: 4×8)">
+        <button class="add-ex-btn" onclick="addExercise()">+ Ekle</button>
+      </div>
+    </div>
+    <button class="reset-btn" onclick="resetExercises()">⚠️ Varsayılana Sıfırla</button>
+    </div>
+  </div>
+
+</div><!-- /scroll -->
+
+<div class="bnav">
+  <button class="bnav-btn active" id="bn-today" onclick="showPage('today',this)">
+    <span class="bnav-icon">📋</span>Bugün<span class="bnav-dot"></span>
+  </button>
+  <button class="bnav-btn" id="bn-weekly" onclick="showPage('weekly',this)">
+    <span class="bnav-icon">📅</span>Haftalık<span class="bnav-dot"></span>
+  </button>
+  <button class="bnav-btn" id="bn-monthly" onclick="showPage('monthly',this)">
+    <span class="bnav-icon">📆</span>Aylık<span class="bnav-dot"></span>
+  </button>
+  <button class="bnav-btn" id="bn-pr" onclick="showPage('pr',this)">
+    <span class="bnav-icon">🏆</span>PR<span class="bnav-dot"></span>
+  </button>
+  <button class="bnav-btn" id="bn-edit" onclick="showPage('edit',this)">
+    <span class="bnav-icon">⚙️</span>Düzenle<span class="bnav-dot"></span>
+  </button>
+</div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- PR MODAL -->
+<div class="modal-overlay" id="pr-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">PR Güncelle</div>
+    <div class="modal-sub" id="modal-sub"></div>
+    <div class="modal-fields">
+      <div class="modal-field"><label>Ağırlık (kg)</label><input type="number" id="modal-kg" placeholder="0" step="0.5"></div>
+      <div class="modal-field"><label>Tekrar sayısı</label><input type="number" id="modal-reps" placeholder="1" min="1"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">İptal</button>
+      <button class="modal-save" onclick="savePR()">💾 Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== DATA =====================
+const DAYS=['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
+const MONTHS=['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+const SCH={0:'rest',1:'push',2:'pull',3:'legs',4:'push',5:'pull',6:'rest'};
+
+const DEFAULT_W={
+  push:{title:'Göğüs · Omuz · Triceps',exercises:[
+    {n:'Bench Press',d:'Primer bileşik — ağırlığa odaklan',s:'4×6'},
+    {n:'Incline DB Press',d:'Üst göğüs, 30-45° açı',s:'3×10'},
+    {n:'Overhead Press',d:'Barbell — oturarak veya ayakta',s:'4×8'},
+    {n:'Lateral Raise',d:'Kontrollü tempo, partial rep',s:'4×15'},
+    {n:'Cable Crossover',d:'Göğsü tamamen kasarak kilitle',s:'3×15'},
+    {n:'Triceps Pushdown',d:'Rope — dirsekleri sabit tut',s:'3×12'},
+    {n:'Overhead Tri Ext',d:'Uzun baş için kol yukarıda',s:'3×12'},
+  ],tip:"Bench'te scapula retraksiyon yap. Lateral raise'de 10° öne eğim aktivasyonu artırır."},
+  pull:{title:'Sırt · Biceps · Arka Omuz',exercises:[
+    {n:'Pull-Up / Lat Pull',d:'Tam ROM, boynun önüne çek',s:'4×6'},
+    {n:'Barbell Row',d:'45° torso, dirsekler dışarıda',s:'4×8'},
+    {n:'Seated Cable Row',d:'Geniş tutuş — saf lat kasılması',s:'3×12'},
+    {n:'Face Pull',d:'Dış rotasyon vurgusu',s:'3×20'},
+    {n:'Rear Delt Fly',d:'Düşük ağırlık, yüksek sıkıştırma',s:'3×15'},
+    {n:'Barbell Curl',d:'Supinasyon ile kasıl',s:'3×10'},
+    {n:'Hammer + Incline Curl',d:'Brachialis için süperset',s:'3×12'},
+  ],tip:"Pull-up'ta dead hang latissimus için kritik. Face pull'u asla atlama."},
+  legs:{title:'Quad · Hamstring · Glute · Calf',exercises:[
+    {n:'Back Squat',d:'Paralelin altına in',s:'4×6'},
+    {n:'Romanian Deadlift',d:'Hamstring gerilimi hissederek',s:'3×10'},
+    {n:'Leg Press',d:'Geniş açık duruş, tam ROM',s:'3×12'},
+    {n:'Leg Curl',d:'Kontrollü negatif faz',s:'3×12'},
+    {n:'Leg Extension',d:'Tepe noktada 1 sn izometrik',s:'3×15'},
+    {n:'Hip Thrust',d:'Glute aktivasyonu, pelvik tilt',s:'3×12'},
+    {n:'Calf Raise',d:'Topuğu tam aşağıya indir',s:'4×20'},
+  ],tip:"Squat'ta diz ayak parmak hizasının dışına çıkmasın. Calf'ta tam ROM şart."}
+};
+
+// ---- MEAL PLANS (antrenman/dinlenme günleri için ayrı) ----
+const MEAL_PLANS = {
+  workout: [
+    {
+      id:'kahvalti', name:'Kahvaltı', icon:'🍳', time:'08:00',
+      kcal:550, protein:45, carb:38, fat:22,
+      ingredients:[
+        {name:'Tam yumurta (3 adet)',amount:'180g'},
+        {name:'Yumurta akı (2 adet)',amount:'66g'},
+        {name:'Tam buğday ekmek',amount:'2 dilim'},
+        {name:'Süzme yoğurt',amount:'80g'},
+        {name:'Domates, salatalık',amount:'serbest'},
+        {name:'Zeytinyağı',amount:'1 çay kaşığı'},
+      ],
+      tip:'💡 Antrenman sabahsa 1 saat önce ye. Yumurtaları akşamdan haşlarsan 5 dk\'da hazır.'
+    },
+    {
+      id:'ogle', name:'Öğle Yemeği', icon:'🥗', time:'12:30',
+      kcal:650, protein:50, carb:60, fat:18,
+      ingredients:[
+        {name:'Tavuk göğsü',amount:'180g'},
+        {name:'Bulgur (pişmiş)',amount:'150g'},
+        {name:'Roka + domates + salatalık',amount:'serbest'},
+        {name:'Zeytinyağı',amount:'1 tatlı kaşığı'},
+        {name:'Limon',amount:'½ adet'},
+      ],
+      tip:'💡 Haftalık 700g tavuk pişir, buzdolabında sakla — 4 günlük öğle hazır.'
+    },
+    {
+      id:'ara', name:'Antrenman Sonrası', icon:'🥤', time:'17:00',
+      kcal:350, protein:35, carb:42, fat:8,
+      ingredients:[
+        {name:'Süt',amount:'300ml'},
+        {name:'Muz',amount:'1 adet'},
+        {name:'Yoğurt',amount:'200g'},
+        {name:'Fıstık ezmesi',amount:'1 yemek kaşığı'},
+      ],
+      tip:'💡 Antrenman bittikten sonraki 30-45 dakika içinde mutlaka ye!'
+    },
+    {
+      id:'aksam', name:'Akşam Yemeği', icon:'🍽️', time:'20:00',
+      kcal:550, protein:45, carb:28, fat:22,
+      ingredients:[
+        {name:'Somon fileto veya dana',amount:'200g'},
+        {name:'Brokoli + kabak',amount:'300g'},
+        {name:'Zeytinyağı',amount:'1 tatlı kaşığı'},
+        {name:'Sarımsak + limon',amount:'tatlandırıcı'},
+      ],
+      tip:'💡 Akşam karbonhidratı düşük tut — yağ yakımını destekler.'
+    },
+  ],
+  rest: [
+    {
+      id:'kahvalti', name:'Kahvaltı', icon:'🍳', time:'09:00',
+      kcal:500, protein:42, carb:32, fat:20,
+      ingredients:[
+        {name:'Tam yumurta (3 adet)',amount:'180g'},
+        {name:'Yumurta akı (2 adet)',amount:'66g'},
+        {name:'Tam buğday ekmek',amount:'1 dilim'},
+        {name:'Süzme yoğurt',amount:'100g'},
+        {name:'Domates, salatalık, zeytin',amount:'serbest'},
+      ],
+      tip:'💡 Dinlenme günlerinde karbonhidratı biraz düşür, protein yüksek kalsın.'
+    },
+    {
+      id:'ogle', name:'Öğle Yemeği', icon:'🥗', time:'13:00',
+      kcal:550, protein:48, carb:35, fat:16,
+      ingredients:[
+        {name:'Ton balığı (konserve)',amount:'160g'},
+        {name:'Haşlanmış yumurta',amount:'2 adet'},
+        {name:'Geniş yeşil salata',amount:'serbest'},
+        {name:'Zeytinyağı + elma sirkesi',amount:'sos'},
+        {name:'Tam buğday ekmek',amount:'1 dilim'},
+      ],
+      tip:'💡 Dinlenme günü öğle: karbonhidrat yarıya iner, protein yüksek kalır.'
+    },
+    {
+      id:'ara', name:'Ara Öğün', icon:'🍎', time:'16:00',
+      kcal:200, protein:20, carb:22, fat:5,
+      ingredients:[
+        {name:'Süzme yoğurt',amount:'200g'},
+        {name:'Elma veya muz',amount:'1 adet'},
+        {name:'Tarçın',amount:'1 tutam'},
+      ],
+      tip:'💡 Dinlenme günü ara öğün küçük olsun — sadece yoğurt + meyve yeter.'
+    },
+    {
+      id:'aksam', name:'Akşam Yemeği', icon:'🍽️', time:'19:30',
+      kcal:500, protein:44, carb:18, fat:20,
+      ingredients:[
+        {name:'Tavuk göğsü veya yumurta',amount:'200g / 4 adet'},
+        {name:'Ispanak veya brokoli',amount:'200g'},
+        {name:'Zeytinyağı',amount:'1 tatlı kaşığı'},
+        {name:'Tam buğday ekmek',amount:'1 dilim'},
+      ],
+      tip:'💡 Akşam karbonhidrat minimum — sebze ağırlıklı tabak.'
+    },
+  ]
+};
+
+const MACRO_TARGETS = {kcal:2100, protein:160, carb:200, fat:65};
+
+// ---- STORAGE ----
+function lload(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):def}catch(e){return def}}
+function lsave(k,v){localStorage.setItem(k,JSON.stringify(v))}
+
+let data    = lload('ppl_d',{});
+let W       = lload('ppl_w',JSON.parse(JSON.stringify(DEFAULT_W)));
+let prData  = lload('ppl_pr',{});
+let bwData  = lload('ppl_bw',[]);
+let nutData = lload('ppl_nut',{}); // {date: {meals:[ids checked], water:n}}
+
+// ---- DATE ----
+function toKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+const today=new Date(),todayKey=toKey(today),todayDow=today.getDay();
+let viewDow=(todayDow===0||todayDow===6)?1:todayDow;
+const isWeekend=todayDow===0||todayDow===6;
+
+function getMon(d){const dt=new Date(d),day=dt.getDay(),diff=dt.getDate()-day+(day===0?-6:1);dt.setDate(diff);return dt}
+function getViewKey(){const m=getMon(today),off=viewDow===0?6:viewDow-1,d=new Date(m);d.setDate(m.getDate()+off);return toKey(d)}
+
+// ---- STREAK ----
+function calcStreak(){
+  let s=0,best=0,cur=0;const d=new Date(today);
+  const todayIsWorkday=todayDow!==0&&todayDow!==6;
+  const todayDone=data[todayKey]&&data[todayKey].c;
+  if(todayIsWorkday&&!todayDone){d.setDate(d.getDate()-1);}
+  for(let i=0;i<365;i++){const k=toKey(d),dow=d.getDay();if(dow===0||dow===6){d.setDate(d.getDate()-1);continue}if(data[k]&&data[k].c)s++;else break;d.setDate(d.getDate()-1)}
+  for(const k of Object.keys(data).sort()){if(data[k]&&data[k].c){cur++;best=Math.max(best,cur)}else cur=0}
+  return{s,best}
+}
+function totalW(){return Object.values(data).filter(v=>v&&v.c).length}
+function monthW(yr,mo){return Object.keys(data).filter(k=>{const d=new Date(k);return d.getFullYear()===yr&&d.getMonth()===mo&&data[k]&&data[k].c}).length}
+
+// ===================== TAB SWITCH =====================
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('tc-'+tab).classList.add('active');
+  if(tab==='beslenme') renderNutrition();
+}
+
+// ===================== WORKOUT =====================
+function renderToday(){
+  const{s}=calcStreak();
+  document.getElementById('snum').textContent=s;
+  document.getElementById('stot').textContent=totalW();
+  document.getElementById('ssub').textContent=s===0?'İlk antrenmanını tamamla!':s<3?'Seri başlıyor! 💪':s<7?'Harika gidiyor! 🔥':s<14?'Durdurulamaz sın! 💥':'Efsane seri! 🏆';
+  renderDsel();renderWork();
+}
+
+function renderDsel(){
+  document.getElementById('dsel').innerHTML=[1,2,3,4,5].map(dow=>{
+    const type=SCH[dow],m=getMon(today),off=dow===0?6:dow-1,d=new Date(m);d.setDate(m.getDate()+off);
+    const k=toKey(d),done=data[k]&&data[k].c,isT=!isWeekend&&dow===todayDow,isA=dow===viewDow;
+    const ac=isA?(type==='push'?'ap':type==='pull'?'apu':'al'):'';
+    const dc=done?(type==='push'?'dp':type==='pull'?'dpu':'dl'):'';
+    return`<div class="ds-btn ${ac} ${dc} ${isT?'it':''}" onclick="switchDay(${dow})">
+      <div class="ds-day">${isT?'BUGÜN':DAYS[dow]}</div>
+      <div class="ds-type">${type.toUpperCase()}</div>
+      <div class="ds-dot"></div>
+    </div>`;
+  }).join('');
+}
+
+function switchDay(dow){viewDow=dow;renderDsel();renderWork()}
+
+function renderWork(){
+  const type=SCH[viewDow],vk=getViewKey(),isT=viewDow===todayDow;
+  const dd=data[vk]||{},ck=dd.ex||[],area=document.getElementById('warea');
+  if(type==='rest'){area.innerHTML=`<div class="rest-day"><div class="rest-e">😴</div><div class="rest-t">Dinlenme Günü</div><div class="rest-s">Kaslar bugün büyüyor. İyi dinlen.</div></div>`;return}
+  const w=W[type],tot=w.exercises.length,allDone=dd.c,pct=Math.round((allDone?tot:(ck.length))/tot*100);
+  const DF=['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+  area.innerHTML=`
+  <div class="wh">
+    <div class="wh-top">
+      <div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+          <div class="tbadge ${type}">${type.toUpperCase()}</div>
+          ${!isT?`<span style="font-size:10px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:3px 8px;border-radius:5px">${DF[viewDow]}</span>`:''}
+        </div>
+        <div class="wh-title">${w.title}</div>
+      </div>
+      <button class="fin-btn ${type} ${allDone?'done':''}" onclick="markDone()">${allDone?'✓ Tamam':'Bitir'}</button>
+    </div>
+    <div class="prog ${type}">
+      <div class="prog-info"><span class="prog-lbl">${allDone?tot:ck.length}/${tot} hareket</span><span class="prog-pct">${pct}%</span></div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+    </div>
+  </div>
+  <div class="ex-list">
+    ${w.exercises.map((ex,i)=>{
+      const c=allDone||ck.includes(i);
+      const pr=getBestPR(ex.n);
+      const prLabel=pr?`<span class="ex-pr">PR ${pr.kg}kg×${pr.reps}</span>`:'';
+      return`<div class="ex-item ${type} ${c?'checked':''}" onclick="toggleEx(${i})">
+        <div class="ex-cb">${c?'✓':''}</div>
+        <span class="ex-num">${String(i+1).padStart(2,'0')}</span>
+        <div class="ex-info"><div class="ex-name">${ex.n}${prLabel}</div><div class="ex-note">${ex.d}</div></div>
+        <div class="ex-sets"><div class="sets-val">${ex.s}</div><div class="sets-lbl">set×tek</div></div>
+      </div>`;
+    }).join('')}
+  </div>
+  <div class="tip ${type}">${w.tip}</div>`;
+}
+
+function toggleEx(idx){
+  const type=SCH[viewDow];if(type==='rest')return;
+  const vk=getViewKey();if(!data[vk])data[vk]={type,c:false,ex:[]};
+  if(data[vk].c)return;
+  const arr=data[vk].ex,pos=arr.indexOf(idx);
+  if(pos===-1){arr.push(idx);showToast('✓ '+W[type].exercises[idx].n)}else arr.splice(pos,1);
+  lsave('ppl_d',data);renderDsel();renderWork();
+}
+
+function markDone(){
+  const type=SCH[viewDow];if(type==='rest')return;
+  const vk=getViewKey();if(!data[vk])data[vk]={type,c:false,ex:[]};
+  if(!data[vk].c){data[vk].c=true;data[vk].type=type;data[vk].ex=W[type].exercises.map((_,i)=>i);lsave('ppl_d',data);showToast('🔥 Antrenman tamamlandı!')}
+  renderToday();renderWeekly();renderMonthly();renderWork();
+}
+
+// ===================== NUTRITION =====================
+function getTodayNut(){
+  if(!nutData[todayKey])nutData[todayKey]={meals:[],water:0};
+  return nutData[todayKey];
+}
+function saveNut(){lsave('ppl_nut',nutData)}
+
+function getMealPlan(){
+  const dow=today.getDay();
+  // rest days: Sat/Sun or if today is a rest day in schedule
+  return(dow===0||dow===6)?MEAL_PLANS.rest:MEAL_PLANS.workout;
+}
+
+function calcTodayMacros(){
+  const nut=getTodayNut();
+  const plan=getMealPlan();
+  let kcal=0,protein=0,carb=0,fat=0;
+  plan.forEach(m=>{
+    if(nut.meals.includes(m.id)){kcal+=m.kcal;protein+=m.protein;carb+=m.carb;fat+=m.fat}
+  });
+  return{kcal,protein,carb,fat};
+}
+
+function renderNutrition(){
+  const nut=getTodayNut();
+  const plan=getMealPlan();
+  const macros=calcTodayMacros();
+
+  // Update macro strip
+  const pct=(v,t)=>Math.min(100,Math.round(v/t*100));
+  document.getElementById('m-kcal').textContent=macros.kcal;
+  document.getElementById('m-prot').textContent=macros.protein+'g';
+  document.getElementById('m-carb').textContent=macros.carb+'g';
+  document.getElementById('m-fat').textContent=macros.fat+'g';
+  document.getElementById('m-kcal-t').textContent=macros.kcal+'/'+MACRO_TARGETS.kcal;
+  document.getElementById('m-prot-t').textContent=macros.protein+'/'+MACRO_TARGETS.protein+'g';
+  document.getElementById('m-carb-t').textContent=macros.carb+'/'+MACRO_TARGETS.carb+'g';
+  document.getElementById('m-fat-t').textContent=macros.fat+'/'+MACRO_TARGETS.fat+'g';
+  document.getElementById('mb-kcal').style.width=pct(macros.kcal,MACRO_TARGETS.kcal)+'%';
+  document.getElementById('mb-prot').style.width=pct(macros.protein,MACRO_TARGETS.protein)+'%';
+  document.getElementById('mb-carb').style.width=pct(macros.carb,MACRO_TARGETS.carb)+'%';
+  document.getElementById('mb-fat').style.width=pct(macros.fat,MACRO_TARGETS.fat)+'%';
+
+  // Water
+  const w=nut.water||0;
+  document.getElementById('water-count').textContent=w;
+  document.getElementById('water-glasses').innerHTML=Array.from({length:8},(_,i)=>
+    `<div class="water-glass ${i<w?'filled':''}" onclick="setWater(${i+1})">💧</div>`
+  ).join('');
+
+  // Meals
+  document.getElementById('meal-list').innerHTML=plan.map(m=>{
+    const done=nut.meals.includes(m.id);
+    return`<div class="meal-card ${done?'done':''}" id="mc-${m.id}">
+      <div class="meal-header" onclick="toggleMealBody('${m.id}')">
+        <div class="meal-cb">${done?'✓':''}</div>
+        <div class="meal-icon">${m.icon}</div>
+        <div class="meal-info">
+          <div class="meal-name">${m.name}</div>
+          <div class="meal-macros">${m.kcal} kcal · ${m.protein}g protein · ${m.carb}g karb · ${m.fat}g yağ</div>
+        </div>
+        <div class="meal-time">${m.time}<br><span style="font-size:9px;color:var(--text3)">▾</span></div>
+      </div>
+      <div class="meal-body" id="mb-${m.id}">
+        <div class="meal-body-title">İçindekiler</div>
+        <div class="meal-ingredients">
+          ${m.ingredients.map(ing=>`<div class="meal-ingredient"><span class="meal-ing-name">${ing.name}</span><span>${ing.amount}</span></div>`).join('')}
+        </div>
+        <div class="meal-tip">${m.tip}</div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button onclick="toggleMealDone('${m.id}')" style="flex:1;padding:10px;border-radius:9px;border:none;font-family:'Syne';font-size:12px;font-weight:700;cursor:pointer;background:${done?'var(--bg3)':'var(--green)'};color:${done?'var(--text2)':'#fff'}">
+            ${done?'↩ Geri al':'✓ Yedim'}
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleMealBody(id){
+  const el=document.getElementById('mb-'+id);
+  el.classList.toggle('open');
+}
+
+function toggleMealDone(id){
+  const nut=getTodayNut();
+  const idx=nut.meals.indexOf(id);
+  if(idx===-1){nut.meals.push(id);showToast('✓ '+getMealPlan().find(m=>m.id===id)?.name+' tamamlandı')}
+  else{nut.meals.splice(idx,1)}
+  saveNut();renderNutrition();
+}
+
+function addWater(){
+  const nut=getTodayNut();
+  if(nut.water<8)nut.water++;
+  saveNut();renderNutrition();
+  if(nut.water===8)showToast('🎉 Günlük su hedefine ulaştın!');
+}
+function removeWater(){
+  const nut=getTodayNut();
+  if(nut.water>0)nut.water--;
+  saveNut();renderNutrition();
+}
+function setWater(n){
+  const nut=getTodayNut();nut.water=n;saveNut();renderNutrition();
+}
+
+// ===================== WEEKLY =====================
+function renderWeekly(){
+  const{s,best}=calcStreak();
+  document.getElementById('wstr').textContent=s;
+  document.getElementById('wbest').textContent='En iyi: '+best+' gün';
+  const mon=getMon(today);let wd=0;const cells=[];
+  for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);const dow=d.getDay(),k=toKey(d),type=SCH[dow],done=data[k]&&data[k].c,isT=k===todayKey,isF=d>today;if(done)wd++;cells.push({d,dow,k,type,done,isT,isF})}
+  document.getElementById('wwc').textContent=wd+'/5';
+
+  // Nutrition compliance this week
+  let nutDays=0;
+  cells.forEach(c=>{
+    const n=nutData[c.k];
+    if(n&&n.meals&&n.meals.length>=3)nutDays++;
+  });
+
+  const ratePct=Math.round(wd/5*100);
+  const missedDays=cells.filter(c=>!c.done&&!c.isF&&c.type!=='rest');
+  document.getElementById('weekly-summary').innerHTML=`
+    <div class="sum-title">Bu Haftanın Özeti</div>
+    <div class="sum-row"><span class="sum-label">Tamamlanan antrenman</span><span class="sum-val ${wd>=4?'good':wd>=2?'warn':''}">${wd} / 5</span></div>
+    <div class="sum-row"><span class="sum-label">Antrenman oranı</span><span class="sum-val ${ratePct>=80?'good':ratePct>=40?'warn':''}">${ratePct}%</span></div>
+    <div class="sum-row"><span class="sum-label">Beslenme uyumu</span><span class="sum-val ${nutDays>=5?'good':nutDays>=3?'warn':''}">${nutDays} / 7 gün</span></div>
+    <div class="sum-row"><span class="sum-label">Mevcut seri</span><span class="sum-val ${s>=3?'good':''}">${s} gün</span></div>
+    <div class="sum-row"><span class="sum-label">Bu ay toplam</span><span class="sum-val">${monthW(today.getFullYear(),today.getMonth())} antrenman</span></div>
+    ${missedDays.length?`<div class="sum-row"><span class="sum-label">Kaçırılan</span><span class="sum-val warn">${missedDays.map(c=>DAYS[c.dow]).join(', ')}</span></div>`:''}
+  `;
+
+  document.getElementById('wkgrid').innerHTML=cells.map(c=>{
+    let cl='wc';
+    if(c.done&&c.type==='pull')cl='wc wcpu';else if(c.done&&c.type==='push')cl='wc wcp';else if(c.done&&c.type==='legs')cl='wc wcl';
+    else if(!c.done&&c.isT)cl='wc wct';else if(c.type==='rest')cl='wc wcr';else if(c.isF)cl='wc wcf';
+    return`<div class="${cl}"><div class="wc-d">${DAYS[c.dow]}</div><div class="wc-n">${c.d.getDate()}</div><div class="wc-t">${c.type==='rest'?'—':c.type.toUpperCase()}</div><div class="wc-k">${c.done?'✓':c.isT?'◉':''}</div></div>`;
+  }).join('');
+
+  // Nutrition week grid
+  document.getElementById('nutr-week-grid').innerHTML=cells.map(c=>{
+    const n=nutData[c.k];
+    const mealsDone=n&&n.meals?n.meals.length:0;
+    const water=n&&n.water?n.water:0;
+    const isGood=mealsDone>=3;
+    let cl='nwc';
+    if(c.k===todayKey)cl='nwc nwc-today';
+    else if(isGood)cl='nwc nwc-done';
+    return`<div class="${cl}"><div class="nwc-d">${DAYS[c.dow]}</div><div class="nwc-n">${c.d.getDate()}</div><div class="nwc-k">${isGood?'✓':mealsDone>0?mealsDone+'🍽':'—'}</div><div style="font-size:8px;color:var(--blue);margin-top:1px">${water>0?water+'💧':''}</div></div>`;
+  }).join('');
+
+  let ch='';
+  for(let i=27;i>=0;i--){const d2=new Date(today);d2.setDate(today.getDate()-i);const dow2=d2.getDay(),k2=toKey(d2),t2=SCH[dow2];if(t2==='rest')continue;const d2ok=data[k2]&&data[k2].c,isFut=d2>today;let cc='cl';if(d2ok&&t2==='pull')cc='cl clpu';else if(d2ok&&t2==='push')cc='cl clp';else if(d2ok&&t2==='legs')cc='cl cll';else if(!d2ok&&!isFut)cc='cl clb';ch+=`<div class="${cc}">${d2.getDate()}</div>`}
+  document.getElementById('chain').innerHTML=ch;
+  document.getElementById('swt').textContent=totalW();
+  document.getElementById('swb').textContent=best;
+  document.getElementById('swr').textContent=Math.round(wd/5*100)+'%';
+  document.getElementById('swm').textContent='Bu ay: '+monthW(today.getFullYear(),today.getMonth());
+  let tp=0,tpu=0,tl=0;for(const v of Object.values(data))if(v&&v.c){if(v.type==='push')tp++;else if(v.type==='pull')tpu++;else tl++}
+  document.getElementById('tsp').textContent=tp;document.getElementById('tspu').textContent=tpu;document.getElementById('tsl').textContent=tl;
+}
+
+// ===================== MONTHLY =====================
+let vy=today.getFullYear(),vm=today.getMonth();
+function prevMonth(){vm--;if(vm<0){vm=11;vy--}renderMonthly()}
+function nextMonth(){vm++;if(vm>11){vm=0;vy++}renderMonthly()}
+function renderMonthly(){
+  document.getElementById('mlbl').textContent=MONTHS[vm]+' '+vy;
+  const fl=new Date(vy,vm,1),ll=new Date(vy,vm+1,0),sd=(fl.getDay()+6)%7,td=ll.getDate();
+  let html=['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'].map(d=>`<div class="cdh">${d}</div>`).join('');
+  for(let i=0;i<sd;i++)html+='<div class="cd"></div>';
+  let mc=0,mp=0,mpu=0,ml=0,lng=0,cs=0;
+  for(let day=1;day<=td;day++){
+    const d=new Date(vy,vm,day),k=toKey(d),dow=d.getDay(),type=SCH[dow],isT=k===todayKey,done=data[k]&&data[k].c;
+    if(done){mc++;cs++;lng=Math.max(lng,cs);if(type==='push')mp++;else if(type==='pull')mpu++;else ml++}else if(type!=='rest')cs=0;
+    let cl='cd cdi';if(isT)cl='cd cdt';
+    if(done&&type==='pull')cl='cd cdpu';else if(done&&type==='push')cl='cd cdp';else if(done&&type==='legs')cl='cd cdl';
+    html+=`<div class="${cl}">${day}${done?'<div class="cdot"></div>':''}</div>`;
+  }
+  document.getElementById('calgrid').innerHTML=html;
+  document.getElementById('mct').textContent=mc;document.getElementById('mst').textContent=lng;
+  const isNow=vy===today.getFullYear()&&vm===today.getMonth();
+  const wdCount=Array.from({length:td},(_,i)=>{const dow=new Date(vy,vm,i+1).getDay();return dow!==0&&dow!==6}).filter(Boolean).length;
+  document.getElementById('mrt').textContent=wdCount>0?Math.round(mc/wdCount*100)+'%':'0%';
+  document.getElementById('mgol').textContent='Hedef: '+wdCount+' seans';
+  document.getElementById('mdl').textContent=isNow?(td-today.getDate())+' gün kaldı':MONTHS[vm];
+  document.getElementById('mtp').textContent=mp;document.getElementById('mtpu').textContent=mpu;document.getElementById('mtl').textContent=ml;
+}
+
+// ===================== PR =====================
+function getBestPR(exName){
+  const list=prData[exName];if(!list||!list.length)return null;
+  return list.reduce((b,c)=>(c.kg*(1+c.reps/30))>(b.kg*(1+b.reps/30))?c:b);
+}
+let prModalEx=null;
+function openPRModal(exName,type){
+  prModalEx={name:exName,type};
+  document.getElementById('modal-title').textContent=exName;
+  document.getElementById('modal-sub').textContent='Yeni PR kaydet';
+  document.getElementById('modal-kg').value='';
+  document.getElementById('modal-reps').value='1';
+  document.getElementById('pr-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('modal-kg').focus(),300);
+}
+function closeModal(){document.getElementById('pr-modal').classList.remove('open')}
+function savePR(){
+  if(!prModalEx)return;
+  const kg=parseFloat(document.getElementById('modal-kg').value);
+  const reps=parseInt(document.getElementById('modal-reps').value)||1;
+  if(!kg||kg<=0){showToast('⚠️ Geçerli bir ağırlık gir');return}
+  const key=prModalEx.name;
+  if(!prData[key])prData[key]=[];
+  const prev=getBestPR(key);
+  prData[key].push({kg,reps,date:todayKey});
+  lsave('ppl_pr',prData);closeModal();
+  const newBest=getBestPR(key);
+  const improved=!prev||(newBest.kg*(1+newBest.reps/30))>(prev.kg*(1+prev.reps/30));
+  showToast(improved?'🏆 Yeni PR! '+kg+'kg × '+reps:'✓ Kaydedildi: '+kg+'kg × '+reps);
+  renderPR();renderWork();
+}
+function renderPR(){
+  const allEx=[];
+  ['push','pull','legs'].forEach(type=>{W[type].exercises.forEach(ex=>{allEx.push({...ex,type})})});
+  document.getElementById('pr-list').innerHTML=allEx.map(ex=>{
+    const best=getBestPR(ex.n);
+    const history=prData[ex.n]||[];
+    const chips=best?`
+      <div class="pr-chip best"><div class="pr-chip-val">${best.kg}kg</div><div class="pr-chip-lbl">En İyi</div></div>
+      <div class="pr-chip"><div class="pr-chip-val">${best.reps}</div><div class="pr-chip-lbl">Tekrar</div></div>
+      <div class="pr-chip"><div class="pr-chip-val">${history.length}</div><div class="pr-chip-lbl">Kayıt</div></div>
+    `:`<div style="font-size:11px;color:var(--text3);padding-left:6px;padding-top:4px">Henüz kayıt yok</div>`;
+    return`<div class="pr-card ${ex.type}">
+      <div class="pr-name">${ex.n}</div>
+      <div class="pr-row">${chips}</div>
+      <button class="pr-edit-btn" onclick="openPRModal('${ex.n.replace(/'/g,"\\'")}','${ex.type}')">+ PR</button>
+    </div>`;
+  }).join('');
+}
+
+// ===================== BODY WEIGHT =====================
+function saveBW(){
+  const kg=parseFloat(document.getElementById('bw-input').value);
+  if(!kg||kg<20||kg>300){showToast('⚠️ Geçerli bir kilo gir');return}
+  bwData.unshift({date:todayKey,kg});
+  if(bwData.length>90)bwData=bwData.slice(0,90);
+  lsave('ppl_bw',bwData);
+  document.getElementById('bw-input').value='';
+  showToast('✓ Kilo kaydedildi: '+kg+' kg');renderBW();
+}
+function deleteBW(idx){bwData.splice(idx,1);lsave('ppl_bw',bwData);renderBW()}
+function renderBW(){
+  const sorted=[...bwData].sort((a,b)=>a.date>b.date?1:-1);
+  const svg=document.getElementById('bw-svg');
+  if(sorted.length<2){svg.innerHTML=`<text x="50%" y="50%" text-anchor="middle" fill="#5a5855" font-size="12" font-family="Syne,sans-serif">${sorted.length===0?'Henüz kayıt yok':'En az 2 kayıt gerekli'}</text>`}
+  else{
+    const vals=sorted.map(e=>e.kg),mn=Math.min(...vals)-2,mx=Math.max(...vals)+2;
+    const W2=300,H2=110,pad=8;
+    const px=i=>pad+(i/(sorted.length-1))*(W2-pad*2);
+    const py=v=>H2-pad-(v-mn)/(mx-mn)*(H2-pad*2);
+    const path=sorted.map((e,i)=>`${i===0?'M':'L'}${px(i).toFixed(1)},${py(e.kg).toFixed(1)}`).join(' ');
+    const area=`M${px(0).toFixed(1)},${H2} `+sorted.map((e,i)=>`L${px(i).toFixed(1)},${py(e.kg).toFixed(1)}`).join(' ')+` L${px(sorted.length-1).toFixed(1)},${H2} Z`;
+    svg.setAttribute('viewBox',`0 0 ${W2} ${H2}`);
+    svg.innerHTML=`<defs><linearGradient id="bwg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f0b429" stop-opacity=".3"/><stop offset="100%" stop-color="#f0b429" stop-opacity="0"/></linearGradient></defs>
+      <path d="${area}" fill="url(#bwg)"/>
+      <path d="${path}" fill="none" stroke="#f0b429" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      ${sorted.map((e,i)=>`<circle cx="${px(i).toFixed(1)}" cy="${py(e.kg).toFixed(1)}" r="3" fill="#f0b429"/>`).join('')}
+      <text x="${px(0)}" y="${H2-1}" font-size="8" fill="#5a5855" font-family="Syne,sans-serif">${sorted[0].date.slice(5)}</text>
+      <text x="${px(sorted.length-1)}" y="${H2-1}" font-size="8" fill="#5a5855" font-family="Syne,sans-serif" text-anchor="end">${sorted[sorted.length-1].date.slice(5)}</text>
+      <text x="${px(sorted.length-1)}" y="${py(vals[vals.length-1])-6}" font-size="10" fill="#f0b429" font-family="'Bebas Neue',sans-serif" text-anchor="end">${vals[vals.length-1]}kg</text>`;
+  }
+  document.getElementById('bw-list').innerHTML=bwData.map((e,i)=>`
+    <div class="bw-entry">
+      <div class="bw-date">${e.date}</div>
+      <div style="display:flex;align-items:center;gap:8px"><div class="bw-val">${e.kg} kg</div><button class="bw-del" onclick="deleteBW(${i})">✕</button></div>
+    </div>`).join('');
+}
+
+// ===================== EXERCISE EDITOR =====================
+let editType='push';
+function setEditType(t,btn){editType=t;document.querySelectorAll('.edit-tab').forEach(b=>{b.className='edit-tab'});btn.className='edit-tab active-'+t;renderEditList()}
+function renderEditList(){
+  document.getElementById('edit-ex-list').innerHTML=W[editType].exercises.map((ex,i)=>`
+    <div class="edit-ex-item">
+      <div class="edit-ex-name">${ex.n}<div style="font-size:10px;color:var(--text3)">${ex.d}</div></div>
+      <div class="edit-ex-sets">${ex.s}</div>
+      <button class="edit-del-btn" onclick="deleteExercise(${i})">✕</button>
+    </div>`).join('');
+}
+function deleteExercise(i){
+  if(W[editType].exercises.length<=1){showToast('⚠️ En az 1 egzersiz kalmalı');return}
+  W[editType].exercises.splice(i,1);lsave('ppl_w',W);renderEditList();showToast('Silindi');
+}
+function addExercise(){
+  const n=document.getElementById('add-name').value.trim();
+  const d=document.getElementById('add-note').value.trim()||'—';
+  const s=document.getElementById('add-sets').value.trim()||'3×10';
+  if(!n){showToast('⚠️ Egzersiz adı boş olamaz');return}
+  W[editType].exercises.push({n,d,s});lsave('ppl_w',W);
+  document.getElementById('add-name').value='';document.getElementById('add-note').value='';document.getElementById('add-sets').value='';
+  renderEditList();showToast('✓ '+n+' eklendi');
+}
+function resetExercises(){
+  if(!confirm('Tüm egzersiz listeleri varsayılana dönecek. Emin misin?'))return;
+  W=JSON.parse(JSON.stringify(DEFAULT_W));lsave('ppl_w',W);renderEditList();showToast('✓ Sıfırlandı');
+}
+
+// ===================== PAGE NAV =====================
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(id==='weekly')renderWeekly();
+  if(id==='monthly')renderMonthly();
+  if(id==='pr'){renderPR();renderBW();}
+  if(id==='edit')renderEditList();
+}
+
+// ===================== TOAST =====================
+let tt;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2500)}
+
+// ===================== INIT =====================
+const ND=['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
+document.getElementById('tdate').textContent=ND[today.getDay()]+' '+today.getDate()+' '+MONTHS[today.getMonth()];
+renderToday();renderWeekly();renderMonthly();
+</script>
+</body>
+</html>
